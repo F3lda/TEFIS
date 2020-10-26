@@ -47,16 +47,94 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 	.abutton {
 		text-decoration: none;
 	}
+	
+	textarea {
+		height: 530px;
+		width: 99%;
+		display: block;
+		resize: vertical;
+	}
 	</style>
 </head>
 <body>
 	<div class="content">
 	<?php
 }
-	// UPLOAD FILE
-	if(isset($_GET["UPLOAD"])){
+	// UPLOAD NOTES
+	if(isset($_GET["NOTES"])){
 		if(isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD){
-			foreach($_FILES as $file){
+			if(isset($_POST["file"]) && isset($_POST["note"])){
+				if(isset($_POST["dir"]) && is_dir($_POST["dir"])){
+					$newFile = "./".$_POST["dir"]."/".$_POST["file"];
+					if(!file_exists($newFile)){
+						if(file_put_contents($newFile, $_POST["note"]) !== FALSE){
+							chmod($newFile, 0777);
+							echo "<p>Your note: {$_POST["file"]} has been successfully saved.</p>";
+						} else {
+							echo "<p>Failed to save the note.";
+						}
+					} else {
+						echo "<p>File [". $_POST["file"] ."] already exists.</p>";
+					}
+				} else {
+					echo "<p>Target directory not found.</p>";
+				}
+			} else {
+				echo "<p>Invalid parameters.</p>";
+			}
+			echo '<button onclick="window.location.href = \'./\';">Exit and Relogin</button><br><br>';
+			echo '<button onclick="window.history.back();">Back</button>';
+		} else {
+			?>
+<div>
+	<form action="./?NOTES" method="POST">
+		Notes: <br><textarea name="note" wrap="hard"></textarea>
+		File name: <input type="text" name="file" size="40" value="NOTE_<?php echo date("Y-m-d_H-i-s"); ?>.txt"><br>
+		<span>Upload to: </span>
+		<select name="dir">
+			<option value="PRIVATE" selected="selected">Private files</option>
+			<option value="SHARED">Shared files</option>
+		</select>
+		<br>
+		<br>
+		<br>
+		<fieldset>
+		<legend>TEFIS - upload files</legend>
+		<?php
+			if(isset($_POST["dir"])) {
+				echo '<span class="message">Nothing has been uploaded!</span><br>';
+			}
+		?>
+			Username: <input type="text" name="username"><br>
+			Password: <input type="password" name="password"><br>
+			<input type="submit" name="submit" value="Upload files">
+		</fieldset>
+	</form>
+	<br>
+	<button onclick="window.history.back();">Back</button>
+</div>
+			<?php
+		}		
+	// UPLOAD FILE
+	} else if(isset($_GET["UPLOAD"])){
+		if(isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD){
+
+			$files = array();
+			foreach($_FILES as $upload => $fileUploads){
+				$fileKeys = array_keys($fileUploads);
+				
+				if(isset($fileUploads["name"])){
+					
+					for($i = 0; $i < count($fileUploads["name"]); $i++) {
+						
+						foreach ($fileKeys as $key) {
+							$files[$upload."-".($i+1)][$key] = $fileUploads[$key][$i];
+						}
+					}
+				}
+			}
+			
+			foreach($files as $file){
 				echo "<p>";
 				if(isset($file['error']) || !is_array($file['error'])){
 					if($file['error'] == UPLOAD_ERR_OK){
@@ -100,7 +178,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		var used = 0;
 		var last = 0;
 		for(i = 0; i < document.upload.elements.length; i++){
-		if(document.upload.elements[i].type == 'file'){
+			if(document.upload.elements[i].type == 'file'){
 				count++;
 				if(document.upload.elements[i].value.length > 0){
 					used++;
@@ -109,14 +187,15 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 			}
 		}
 		if(used >= count){
-		var lastfile = document.upload.elements[last];
-		if(lastfile){
+			var lastfile = document.upload.elements[last];
+			if(lastfile){
 				count++;
 				var inputfile = document.createElement('input');
 				inputfile.type = 'file';
 				inputfile.size = 40;
-				inputfile.name = 'upload_'+count;
+				inputfile.name = 'upload_'+count+"[]";
 				inputfile.onchange = upload_changed;
+				inputfile.multiple = ' ';
 				lastfile.parentNode.insertBefore(inputfile, lastfile.nextSibling);
 				var br = document.createElement('br');
 				lastfile.parentNode.insertBefore(br, lastfile.nextSibling);
@@ -126,12 +205,17 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 	}
 	</script>
 	<form name="upload" action="./?UPLOAD" method="POST" enctype="multipart/form-data">
-		<input type="file" name="upload_1" size="40" onchange="upload_changed()">
+		Files: <br>
+		<input type="file" name="upload_1[]" size="40" onchange="upload_changed()" multiple>
+		<br>
+		<br>
 		<span>Upload to: </span>
 		<select name="dir">
 			<option value="PRIVATE" selected="selected">Private files</option>
 			<option value="SHARED">Shared files</option>
 		</select>
+		<br>
+		<br>
 		<br>
 		<fieldset>
 		<legend>TEFIS - upload files</legend>
@@ -294,6 +378,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		echo "<h1>TEFIS - Temporary files storage</h1>";
 		echo "<hr>";
 		echo '<button onclick="window.location.href = \'./?UPLOAD\';" style="font-weight: bold;">UPLOAD FILES</button><span> </span>';
+		echo '<button onclick="window.location.href = \'./?NOTES\';" style="font-weight: bold;">UPLOAD NOTES</button><span> </span>';
 		echo '<button onclick="window.location.href = \'./\';">Logout</button><br>';
 		
 		echo "<h2>Private files</h2>";
