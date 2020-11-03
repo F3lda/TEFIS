@@ -99,7 +99,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		<br>
 		<br>
 		<fieldset>
-		<legend>TEFIS - upload files</legend>
+		<legend>TEFIS - upload notes</legend>
 		<?php
 			if(isset($_POST["dir"])) {
 				echo '<span class="message">Nothing has been uploaded!</span><br>';
@@ -285,6 +285,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 			} else {
 				echo "File doesn't exist!";
 			}
+			echo '<br><br><button onclick="window.history.back();">Back</button>';
 		} else {
 			?>
 		<fieldset>
@@ -300,8 +301,122 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 			<input type="submit" name="submit" value="Login">
 		</form>
 		</fieldset>
-		<span>(After download you can close this window.)</span>
+		<br>
+		<button onclick="window.history.back();">Back</button>
 			<?php
+		}
+	// EDIT FILE
+	} else if(isset($_GET["EDIT"]) && isset($_GET["DIR"]) && isset($_GET["ID"])){
+		if(isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD){
+			$files = scandir("./".$_GET["DIR"]);
+			$files = array_diff($files, array('.', '..', '.htaccess'));
+			if(isset($files[$_GET["ID"]])){
+				$file = "./".$_GET["DIR"]."/".$files[$_GET["ID"]];
+				if(file_exists($file) && $files[$_GET["ID"]] != ""){
+					if(isset($_GET["SAVE"]) && isset($_POST["content"])){// edit or save
+						if(file_put_contents($file, $_POST["content"]) !== FALSE){
+							chmod($file, 0777);
+							echo "<p>Your file: {$files[$_GET["ID"]]} has been successfully saved.</p>";
+							echo '<button onclick="window.location.href = \'./\';">Exit and Relogin</button>';
+							echo '<br><br><button onclick="window.history.back();">Back</button>';
+						} else {
+							echo "<p>Failed to save the file.";
+						}
+					} else {
+						?>		
+						<form action="./<?php echo "?EDIT&DIR=".$_GET["DIR"]."&ID=".$_GET["ID"]."&SAVE"; ?>" method="POST">
+							Filename: <?php echo $files[$_GET["ID"]]; ?><br>
+							Content: <br><textarea name="content" wrap="hard"><?php echo file_get_contents($file); ?></textarea>
+							<br>
+							<br>
+							<br>
+							<fieldset>
+							<legend>TEFIS - edit file</legend>
+								Username: <input type="text" name="username"><br>
+								Password: <input type="password" name="password"><br>
+								<input type="submit" name="submit" value="Login">
+							</fieldset>
+						</form>
+						<br>
+						<button onclick="window.history.back();">Back</button>
+						<?php
+					}
+				} else {
+					echo "File doesn't exist!";
+				}
+			} else {
+				echo "File doesn't exist!";
+			}
+		} else {
+			?>
+		<fieldset>
+		<legend>TEFIS - edit file</legend>
+		<form action="./<?php echo "?EDIT&DIR=".$_GET["DIR"]."&ID=".$_GET["ID"]; ?>" method="POST">
+		<?php
+			if(isset($_POST["username"]) && isset($_POST["password"]) && ($_POST["username"] != $USERNAME || $_POST["password"] != $PASSWORD)) {
+				echo '<span class="message">Wrong login credentials!</span><br>';
+			}
+		?>
+			Username: <input type="text" name="username"><br>
+			Password: <input type="password" name="password"><br>
+			<input type="submit" name="submit" value="Login">
+		</form>
+		</fieldset>
+		<br>
+		<button onclick="window.history.back();">Back</button>
+			<?php
+		}
+	// RENAME FILE
+	} else if(isset($_GET["RENAME"]) && isset($_GET["DIR"]) && isset($_GET["ID"])){
+		if(isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD){
+			$files = scandir("./".$_GET["DIR"]);
+			$files = array_diff($files, array('.', '..', '.htaccess'));
+			if(isset($files[$_GET["ID"]])){
+				$file = "./".$_GET["DIR"]."/".$files[$_GET["ID"]];
+				if(file_exists($file) && $files[$_GET["ID"]] != ""){
+					if(isset($_POST["newfilename"]) && $_POST["newfilename"] != ""){
+						rename($file,"./".$_GET["DIR"]."/".$_POST["newfilename"]);
+						echo "<p>File successfully renamed to: <span style='font-weight: bold;'>".$_POST["newfilename"]."</span></p>";
+						echo '<button onclick="window.location.href = \'./\';">Exit and Relogin</button>';
+					} else {
+						echo "New Filename is empty!";
+					}
+				} else {
+					echo "File doesn't exist!";
+				}
+			} else {
+				echo "File doesn't exist!";
+			}
+			echo '<br><br><button onclick="window.history.back();">Back</button>';
+		} else {
+			$files = scandir("./".$_GET["DIR"]);
+			$files = array_diff($files, array('.', '..', '.htaccess'));
+			if(isset($files[$_GET["ID"]])){
+			?>
+			<form action="./<?php echo "?RENAME&DIR=".$_GET["DIR"]."&ID=".$_GET["ID"]; ?>" method="POST">
+				<span>New filename: </span>
+				<input type="text" name="newfilename" size="40" value="<?php echo $files[$_GET["ID"]]; ?>">
+				<br>
+				<br>
+				<br>
+				<fieldset>
+				<legend>TEFIS - rename file</legend>
+				<?php
+					if(isset($_POST["username"]) && isset($_POST["password"]) && ($_POST["username"] != $USERNAME || $_POST["password"] != $PASSWORD)) {
+						echo '<span class="message">Wrong login credentials!</span><br>';
+					}
+				?>
+					Username: <input type="text" name="username"><br>
+					Password: <input type="password" name="password"><br>
+					<input type="submit" name="submit" value="Login">
+				</fieldset>
+			</form>
+			<br>
+			<button onclick="window.history.back();">Back</button>
+			<?php
+			} else {
+				echo "File doesn't exist!";
+			}
 		}
 	// DELETE FILE
 	} else if(isset($_GET["DELETE"]) && isset($_GET["DIR"]) && isset($_GET["ID"])){
@@ -313,13 +428,14 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 				if(file_exists($file) && $files[$_GET["ID"]] != ""){
 					unlink($file);
 					echo "<h4>File [".$file."] deleted successfully!</h4>";
-					echo '<span>(Now you can close this window and relogin.)</span>';
+					echo '<button onclick="window.location.href = \'./\';">Exit and Relogin</button>';
 				} else {
 					echo "File doesn't exist!";
 				}
 			} else {
 				echo "File doesn't exist!";
 			}
+			echo '<br><br><button onclick="window.history.back();">Back</button>';
 		} else {
 			?>
 		<fieldset>
@@ -335,6 +451,8 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 			<input type="submit" name="submit" value="Login">
 		</form>
 		</fieldset>
+		<br>
+		<button onclick="window.history.back();">Back</button>
 			<?php
 		}
 	} else
@@ -370,7 +488,11 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 					} else {
 						echo '<a title="Show/Download file" target="_blank" href="./'.$dir.'/'.$file.'">'.$file.'</a>';
 					}
-					echo ' - <a class="abutton" title="Delete file" target="_blank" href="./?DELETE&DIR='.$dir.'&ID='.$id.'">X</a> - <a class="abutton" title="Download file" target="_blank" href="./?DOWNLOAD&DIR='.$dir.'&ID='.$id.'">\=/</a><br>';
+					echo ' - <a class="abutton" title="Download file" href="./?DOWNLOAD&DIR='.$dir.'&ID='.$id.'">\=/</a>
+					- <a class="abutton" title="Edit file" href="./?EDIT&DIR='.$dir.'&ID='.$id.'">[E>]</a>
+					- <a class="abutton" title="Rename file" href="./?RENAME&DIR='.$dir.'&ID='.$id.'">[R<]</a>
+					- <a class="abutton" title="Delete file" href="./?DELETE&DIR='.$dir.'&ID='.$id.'">[X]</a>
+					<br>';
 				}
 			}
 		}
