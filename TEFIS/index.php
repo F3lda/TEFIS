@@ -10,8 +10,8 @@
 $USERNAME = "admin";// <- change this
 $PASSWORD = "admin";// <- change this
 // -----------------------------
-// TODO - create dir, upload to dir, remove dir, move to dir
-if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($_GET["DIR"] != "PRIVATE" || (isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD)))){
+// maybe TODO - create dir, remove dir, move to dir, upload to dir; hash file number (file number+filename)
+if(!((isset($_GET["SHOW"]) || (isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]))) && isset($_GET["ID"]) && ((isset($_GET["DIR"]) && $_GET["DIR"] != "PRIVATE") || (isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD)))){
 ?>
 <!DOCTYPE html>
 <html>
@@ -107,7 +107,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		?>
 			Username: <input type="text" name="username"><br>
 			Password: <input type="password" name="password"><br>
-			<input type="submit" name="submit" value="Upload files">
+			<input type="submit" name="submit" value="Upload notes">
 		</fieldset>
 	</form>
 	<br>
@@ -240,8 +240,33 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 			$files = scandir("./PRIVATE");
 			$files = array_diff($files, array('.', '..', '.htaccess'));
 			if(isset($files[$_GET["ID"]])){
-				if(file_exists("./PRIVATE/".$files[$_GET["ID"]]) && $files[$_GET["ID"]] != ""){
-					echo "<pre>".file_get_contents("./PRIVATE/".$files[$_GET["ID"]])."</pre>";
+				$file = "./PRIVATE/".$files[$_GET["ID"]];
+				if(file_exists($file) && $files[$_GET["ID"]] != ""){
+					//$file_info = new finfo(FILEINFO_MIME_TYPE);
+					//$file_info_type = $file_info->file($file);
+					$file_info_type = mime_content_type($file);
+					$file_type = explode("/",$file_info_type);
+					$allowed_files = array(
+						"application/javascript", 
+						"application/xhtml+xml",
+						"application/json",
+						"application/ld+json",
+						"application/xml"
+					);
+					if($file_type[0] == "text" || array_search($file_info_type, $allowed_files, true) !== false){
+						//ASCII
+						echo "<pre>".file_get_contents($file)."</pre>";
+					} else {
+						//binary
+						$filename = $file;
+						header('Content-type: ' . $file_info_type);
+						header('Content-Disposition: inline; filename="' . $filename . '"');
+						header('Content-Transfer-Encoding: binary');
+						header('Content-Length: ' . filesize($file));
+						header('Accept-Ranges: bytes');
+						@readfile($file);
+						exit();
+					}
 				} else {
 					echo "File doesn't exist!";
 				}
@@ -260,7 +285,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		?>
 			Username: <input type="text" name="username"><br>
 			Password: <input type="password" name="password"><br>
-			<input type="submit" name="submit" value="Login">
+			<input type="submit" name="submit" value="Show file">
 		</form>
 		</fieldset>
 			<?php
@@ -276,8 +301,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 					header("Content-Description: File Transfer"); 
 					header("Content-Type: application/octet-stream"); 
 					header("Content-Disposition: attachment; filename=\"". basename($file) ."\""); 
-
-					readfile($file);
+					@readfile($file);
 					exit(); 
 				} else {
 					echo "File doesn't exist!";
@@ -298,7 +322,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		?>
 			Username: <input type="text" name="username"><br>
 			Password: <input type="password" name="password"><br>
-			<input type="submit" name="submit" value="Login">
+			<input type="submit" name="submit" value="Download file">
 		</form>
 		</fieldset>
 		<br>
@@ -331,10 +355,10 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 							<br>
 							<br>
 							<fieldset>
-							<legend>TEFIS - edit file</legend>
+							<legend>TEFIS - save file</legend>
 								Username: <input type="text" name="username"><br>
 								Password: <input type="password" name="password"><br>
-								<input type="submit" name="submit" value="Login">
+								<input type="submit" name="submit" value="Save file">
 							</fieldset>
 						</form>
 						<br>
@@ -359,7 +383,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		?>
 			Username: <input type="text" name="username"><br>
 			Password: <input type="password" name="password"><br>
-			<input type="submit" name="submit" value="Login">
+			<input type="submit" name="submit" value="Edit file">
 		</form>
 		</fieldset>
 		<br>
@@ -408,7 +432,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 				?>
 					Username: <input type="text" name="username"><br>
 					Password: <input type="password" name="password"><br>
-					<input type="submit" name="submit" value="Login">
+					<input type="submit" name="submit" value="Rename file">
 				</fieldset>
 			</form>
 			<br>
@@ -448,7 +472,7 @@ if(!(isset($_GET["DOWNLOAD"]) && isset($_GET["DIR"]) && isset($_GET["ID"]) && ($
 		?>
 			Username: <input type="text" name="username"><br>
 			Password: <input type="password" name="password"><br>
-			<input type="submit" name="submit" value="Login">
+			<input type="submit" name="submit" value="Delete file">
 		</form>
 		</fieldset>
 		<br>
