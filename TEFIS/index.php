@@ -5,6 +5,7 @@
  * @brief TEFIS - Temporary files storage (save files from someone else's computer without login to your important accounts)
  * @date 2020-10-22
  * @author F3lda
+ * @update 2021-02-23
  */
 // -----------------------------
 $USERNAME = "admin";// <- change this
@@ -12,6 +13,10 @@ $PASSWORD = "admin";// <- change this
 // -----------------------------
 // maybe TODO - create dir, remove dir, move to dir, upload to dir; hash file number (file number+filename)
 // -------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+// EMPTY BODY - START
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 // SHOW FILE
 if(isset($_GET["SHOW"]) && isset($_GET["ID"]) && isset($_POST["username"]) && isset($_POST["password"]) && $_POST["username"] == $USERNAME && $_POST["password"] == $PASSWORD){
@@ -88,6 +93,11 @@ if(isset($_GET["SHOW"]) && isset($_GET["ID"]) && isset($_POST["username"]) && is
 	echo '<br><br><button onclick="window.history.back();">Back</button>';
 }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
+// EMPTY BODY - END
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+else {
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+// MAIN BODY - START
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 ?>
 <!DOCTYPE html>
@@ -621,7 +631,7 @@ if(isset($_GET["SHOW"]) && isset($_GET["ID"]) && isset($_POST["username"]) && is
 					} else {
 						echo '<a title="Show/Download file" target="_blank" href="./'.$dir.'/'.$file.'">'.$file.'</a>';
 					}
-					echo ' - (' .human_filesize(filesize('./'.$dir.'/'.$file)). ') - <a class="abutton" title="Download file" href="./?DOWNLOAD&DIR='.$dir.'&ID='.$id.'">\=/</a>
+					echo ' - (' .human_filesize(filesize('./'.$dir.'/'.$file)). ' --- ' /*. ' - CONTENT CHANGE: ' .date("Y-m-d H:i:s", filemtime('./'.$dir.'/'.$file)). ' - METADATA CHANGE: '*/ .date("Y-m-d H:i:s", filectime('./'.$dir.'/'.$file)). ') - <a class="abutton" title="Download file" href="./?DOWNLOAD&DIR='.$dir.'&ID='.$id.'">\=/</a>
 					- <a class="abutton" title="Edit file" href="./?EDIT&DIR='.$dir.'&ID='.$id.'">[E>]</a>
 					- <a class="abutton" title="Rename file" href="./?RENAME&DIR='.$dir.'&ID='.$id.'">[R<]</a>
 					- <a class="abutton" title="Delete file" href="./?DELETE&DIR='.$dir.'&ID='.$id.'">[X]</a>
@@ -646,3 +656,9 @@ if(isset($_GET["SHOW"]) && isset($_GET["ID"]) && isset($_POST["username"]) && is
 	</div>
 </body>
 </html>
+<?php
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+// MAIN BODY - END
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+}
+?>
