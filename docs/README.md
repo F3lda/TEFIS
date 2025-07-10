@@ -6,5 +6,10 @@ This version is using PHP Sessions for user authentication. User doesn't have to
 <br>
 <img src="tefis.png" alt="TEFIS" width="70%" height="70%" style="display: inline-block;">
 
+## TEFISv3
+- Advanced auth security
+- Files multi-selection addded
+- Upload status bar added
+
 ## Installation
 Copy this code to your secure web server and change default login details in file `index.php`.
