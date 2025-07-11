@@ -8,12 +8,13 @@ Class ResumableLargeFilesUpload {
 
     private $upload_destination;
     private $bytes_per_chunk;
+    private $upload_threads;
     
     private $action_param = 'action';
     private $data_param = 'data';
 
     // Configuration - can be overridden before including this file
-    public function __construct($param_prefix = '', $upload_destination = './uploads/', $bytes_per_chunk = 30) {
+    public function __construct($param_prefix = '', $upload_destination = './uploads/', $bytes_per_chunk = 30, $upload_threads = 3) {
         
         if (substr($upload_destination, -1) !== '/') {
             $upload_destination .= '/';
@@ -21,6 +22,7 @@ Class ResumableLargeFilesUpload {
 
         $this->upload_destination = $upload_destination;
         $this->bytes_per_chunk = $bytes_per_chunk;
+        $this->upload_threads = $upload_threads;
         
         // Apply prefix to all parameter names
         if (!empty($param_prefix)) {
@@ -563,7 +565,7 @@ Class ResumableLargeFilesUpload {
     var fileSlicesTotal = 0;
     var fileSizeTotal = 0;
     var fileSizeUploaded = 0;
-    var fileUploadThreadsAvailable = 20;
+    var fileUploadThreadsAvailable = <?php echo $this->upload_threads; ?>;
     var fileUploadStartTime = null;
     var fileProcessingStartTime = null;
 
